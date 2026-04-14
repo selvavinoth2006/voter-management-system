@@ -52,3 +52,4 @@ A full-stack project built with React, Node.js, Express, and PostgreSQL (Neon).
 - `voters`: `voter_id`, `name`, `dob`, `gender`, `address`, `phone`
 - `candidates`: `candidate_id`, `name`, `party`, `constituency`
 - `votes`: `vote_id`, `voter_id` (unique), `candidate_id`
+"# voter-management-system" 
