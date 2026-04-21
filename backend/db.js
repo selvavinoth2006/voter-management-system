@@ -109,7 +109,7 @@ const initDb = async () => {
 
 const seedAdmin = async () => {
   try {
-    const adminEmail = 'admin1@gmail.com';
+    const adminEmail = 'admin@gmail.com';
     const adminPass = 'admin@123';
     
     const existing = await sql`SELECT * FROM admins WHERE username = ${adminEmail}`;
