@@ -42,10 +42,18 @@ app.get('/', (req, res) => {
 
 // Initialize DB and Start Server
 const startServer = async () => {
-  await initDb();
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
+  try {
+    await initDb();
+    if (process.env.NODE_ENV !== 'production') {
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+      });
+    }
+  } catch (err) {
+    console.error("Failed to start server:", err);
+  }
 };
 
 startServer();
+
+module.exports = app;
