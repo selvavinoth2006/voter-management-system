@@ -35,6 +35,7 @@ const initDb = async () => {
     await sql`
       CREATE TABLE IF NOT EXISTS voters (
         voter_id SERIAL PRIMARY KEY,
+        voter_card_id VARCHAR(10) UNIQUE,
         name VARCHAR(255) NOT NULL,
         dob DATE,
         gender VARCHAR(50),
@@ -50,6 +51,9 @@ const initDb = async () => {
 
     // Helper to add missing columns to voters if table already exists
     try {
+      await sql`ALTER TABLE voters ADD COLUMN IF NOT EXISTS voter_card_id VARCHAR(10) UNIQUE`;
+      // Ensure existing column is NOT NULL (assuming migration already ran)
+      try { await sql`ALTER TABLE voters ALTER COLUMN voter_card_id SET NOT NULL`; } catch (e) {}
       await sql`ALTER TABLE voters ADD COLUMN IF NOT EXISTS email VARCHAR(255) UNIQUE`;
       await sql`ALTER TABLE voters ADD COLUMN IF NOT EXISTS username VARCHAR(255) UNIQUE`;
       await sql`ALTER TABLE voters ADD COLUMN IF NOT EXISTS password_hash VARCHAR(255)`;
@@ -128,10 +132,8 @@ module.exports = {
     try {
       let rows;
       if (!params || params.length === 0) {
-        // Use sql.query for raw string execution without params
         rows = await sql.query(text);
       } else {
-        // Use sql.query for parameterized queries
         rows = await sql.query(text, params);
       }
       return { rows };

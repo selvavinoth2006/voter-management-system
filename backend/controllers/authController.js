@@ -25,13 +25,13 @@ exports.adminLogin = async (req, res) => {
 };
 
 exports.voterLogin = async (req, res) => {
-  const { identifier, password } = req.body; // identifier can be voter_id, username, or email
+  const { identifier, password } = req.body; // identifier can be voter_id, username, email or voter_card_id
   try {
-    let query = 'SELECT * FROM voters WHERE email = $1 OR username = $1';
+    let query = 'SELECT * FROM voters WHERE email = $1 OR username = $1 OR voter_card_id = $1';
     let params = [identifier];
 
     // If identifier is a number, also check voter_id
-    if (!isNaN(identifier)) {
+    if (!isNaN(identifier) && identifier.length < 10) {
       query += ' OR voter_id = $2';
       params.push(parseInt(identifier));
     }
@@ -49,11 +49,12 @@ exports.voterLogin = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    res.json({ 
-      token, 
-      role: 'voter', 
+    res.json({
+      token,
+      role: 'voter',
       voter: {
         id: voter.voter_id,
+        voterCardId: voter.voter_card_id,
         name: voter.name,
         email: voter.email,
         hasChangedPassword: voter.has_changed_password
