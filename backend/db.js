@@ -130,13 +130,19 @@ const seedAdmin = async () => {
 module.exports = {
   query: async (text, params) => {
     try {
-      let rows;
+      let result;
       if (!params || params.length === 0) {
-        rows = await sql.query(text);
+        result = await sql.query(text);
       } else {
-        rows = await sql.query(text, params);
+        result = await sql.query(text, params);
       }
-      return { rows };
+      
+      // Neon can return an array or a pg-style result object.
+      // We ensure it always returns a result object with a rows property for compatibility.
+      if (Array.isArray(result)) {
+        return { rows: result };
+      }
+      return result;
     } catch (err) {
       console.error("Database query error:", err);
       throw err;
