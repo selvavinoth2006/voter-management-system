@@ -1,8 +1,9 @@
-const { neon } = require('@neondatabase/serverless');
+const { neon, Pool } = require('@neondatabase/serverless');
 const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const sql = neon(process.env.DATABASE_URL);
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 const initDb = async () => {
   try {
@@ -99,6 +100,18 @@ const initDb = async () => {
       )
     `;
 
+    // Helper to add missing columns to votes
+    try {
+      await sql`ALTER TABLE votes ADD COLUMN IF NOT EXISTS election_id INTEGER REFERENCES elections(election_id) ON DELETE CASCADE`;
+      await sql`ALTER TABLE votes ADD COLUMN IF NOT EXISTS candidate_id INTEGER REFERENCES candidates(candidate_id) ON DELETE CASCADE`;
+      // Try to add the unique constraint if it doesn't exist
+      try {
+        await sql`ALTER TABLE votes ADD CONSTRAINT votes_voter_id_election_id_key UNIQUE(voter_id, election_id)`;
+      } catch (e) {}
+    } catch (e) {
+      console.log("Votes table already has columns or error adding them:", e.message);
+    }
+
     await seedAdmin();
     
     console.log("Database tables initialized and seeded successfully");
@@ -128,25 +141,7 @@ const seedAdmin = async () => {
 };
 
 module.exports = {
-  query: async (text, params) => {
-    try {
-      let result;
-      if (!params || params.length === 0) {
-        result = await sql.query(text);
-      } else {
-        result = await sql.query(text, params);
-      }
-      
-      // Neon can return an array or a pg-style result object.
-      // We ensure it always returns a result object with a rows property for compatibility.
-      if (Array.isArray(result)) {
-        return { rows: result };
-      }
-      return result;
-    } catch (err) {
-      console.error("Database query error:", err);
-      throw err;
-    }
-  },
-  initDb
+  query: (text, params) => pool.query(text, params),
+  initDb,
+  pool
 };

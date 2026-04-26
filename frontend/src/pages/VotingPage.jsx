@@ -45,7 +45,9 @@ const VotingPage = () => {
       setCandidates(candidatesRes.data);
       setHasVotedInSelected(statusRes.data.hasVoted);
     } catch (err) {
-      setError("Failed to load election details.");
+      console.error("Error loading election details:", err);
+      const message = err.response?.data?.error || err.message || "Failed to load election details.";
+      setError(message);
     } finally {
       setLoading(false);
     }
